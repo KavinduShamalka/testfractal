@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/gin-contrib/cors"
@@ -49,10 +50,6 @@ type UserAccessTokenResponse struct {
 	CreatedAt   int    `json:"created_at"`
 }
 
-type URL struct {
-	Url string `json:"redirect"`
-}
-
 func main() {
 	r := gin.Default()
 
@@ -71,28 +68,22 @@ func main() {
 }
 
 func FractalURL(ctx *gin.Context) {
-
-	url := ctx.Query("url")
-
-	fmt.Println("URL: ", url)
-
-	fullUrl := fmt.Sprintf("https://app.next.fractal.id/authorize?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&redirect_uri=https%3A%2F%2Fapi2.bethelnet.io%2Foauth%2Fcallback&response_type=code&scope=contact%3Aread%20verification.basic%3Aread%20verification.basic.details%3Aread%20verification.liveness%3Aread%20verification.liveness.details%3Aread&state=123&url=%s" + url)
-	ctx.Redirect(http.StatusFound, fullUrl)
+	ctx.Redirect(http.StatusFound, "https://app.next.fractal.id/authorize?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&redirect_uri=https%3A%2F%2Fapi2.bethelnet.io%2Foauth%2Fcallback&response_type=code&scope=contact%3Aread%20verification.basic%3Aread%20verification.basic.details%3Aread%20verification.liveness%3Aread%20verification.liveness.details%3Aread&state=123")
 }
 
 func CallBack(ctx *gin.Context) {
 
 	state := ctx.Query("state")
 	code := ctx.Query("code")
-	url := ctx.Query("url")
 
 	fmt.Println("state: ", state)
 	fmt.Println("code: ", code)
 
 	token := ExchangeCodeToAccessToken(code)
-	userDetails := GetUserDetails(token)
+	uuid, status := GetUserDetails(token)
 
-	fmt.Println(userDetails)
+	fmt.Println("Uuid: ", uuid)
+	fmt.Println("Status: ", status)
 
 	// ctx.JSON(http.StatusOK, gin.H{
 	// 	"state":       state,
@@ -101,11 +92,11 @@ func CallBack(ctx *gin.Context) {
 	// 	"userDetails": userDetails,
 	// })
 
-	ctx.Redirect(http.StatusFound, url)
+	ctx.Redirect(http.StatusFound, "https://testnet.bethelnet.io")
 
 }
 
-func GetUserDetails(token string) string {
+func GetUserDetails(token string) (string, string) {
 
 	requestURL := "https://resource.next.fractal.id/v2/users/me"
 
@@ -149,7 +140,23 @@ func GetUserDetails(token string) string {
 	// Print the response body
 	fmt.Printf("Response body: %s\n", responseBody)
 
-	return string(responseBody)
+	resp := GetBody(responseBody)
+
+	// Extracting UID
+	uid := resp["uid"].(string)
+	fmt.Println("UID:", uid)
+
+	var status string
+
+	// Extracting verification cases and their statuses
+	verificationCases := resp["verification_cases"].([]interface{})
+	for _, v := range verificationCases {
+		verificationCase := v.(map[string]interface{})
+		status = verificationCase["status"].(string)
+		fmt.Println("Status:", status)
+	}
+
+	return uid, status
 }
 
 func ExchangeCodeToAccessToken(code string) string {
@@ -289,8 +296,21 @@ func GetAllUsers(token string) string {
 	return string(responseBody)
 }
 
-func ErrorResponse(err error) gin.H {
-	return gin.H{
-		"error": err.Error(),
+func GetBody(res []byte) map[string]interface{} {
+
+	//pass to string body
+	sRes := string(res)
+
+	// Replace backslashes
+	sRes = strings.Replace(sRes, "\\", "", -1)
+
+	// Decode JSON
+	var data map[string]interface{}
+	err := json.Unmarshal([]byte(sRes), &data)
+	if err != nil {
+		fmt.Println("Error decoding JSON:", err)
+		return nil
 	}
+
+	return data
 }
