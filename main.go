@@ -1,17 +1,15 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"golang.org/x/oauth2"
 )
-
-var conf *oauth2.Config
 
 func main() {
 	r := gin.Default()
@@ -29,37 +27,69 @@ func main() {
 	r.Run(":8080")
 }
 
-func Test(c *gin.Context) {
-
-	conf = &oauth2.Config{
-		ClientID: "ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0",
-	}
-
-	redirectURI := "http://localhost:8080/callback"
-	encodedRedirectURI := url.QueryEscape(redirectURI)
-
-	val := url.Values{}
-	val.Set("client_id", conf.ClientID) // Add client_id to query params
-	val.Set("redirect_uri", encodedRedirectURI)
-	val.Set("response_type", "code")
-	val.Set("state", "xyzABC123")
-
-	authorizationURL := fmt.Sprintf("https://app.next.fractal.id/authorize?%s", val.Encode())
-
-	fmt.Println("Url: ", authorizationURL)
-
-	c.Redirect(http.StatusFound, "https://app.next.fractal.id/authorize?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&redirect_uri=http%3A%2F%2Flocalhost%3A8090%2Foauth%2Fcallback&response_type=code&scope=contact%3Aread%20verification.basic%3Aread%20verification.basic.details%3Aread%20verification.liveness%3Aread%20verification.liveness.details%3Aread")
+func Test(ctx *gin.Context) {
+	ctx.Redirect(http.StatusFound, "https://app.next.fractal.id/authorize?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&redirect_uri=https%3A%2F%2Fapi2.bethelnet.io%2Foauth%2Fcallback&response_type=code&scope=contact%3Aread%20verification.basic%3Aread%20verification.basic.details%3Aread%20verification.liveness%3Aread%20verification.liveness.details%3Aread&state=123")
 }
 
-func CallBack(c *gin.Context) {
-	state := c.Query("state")
-	code := c.Query("code")
+func CallBack(ctx *gin.Context) {
+	state := ctx.Query("state")
+	code := ctx.Query("code")
 
 	fmt.Println("state: ", state)
 	fmt.Println("code: ", code)
 
-	c.JSON(http.StatusOK, gin.H{
+	token := ExchangeCodeToAccessToken(ctx, code)
+
+	ctx.JSON(http.StatusOK, gin.H{
 		"state": state,
 		"code":  code,
+		"token": token,
 	})
+
+}
+
+func ExchangeCodeToAccessToken(ctx *gin.Context, code string) []byte {
+
+	client_id := "ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0"
+	client_secret := "rMkPTgNPJh1VeEmNzjZBqE4_VrnIk2KLjWJNy2wGJeM"
+	grant_type := "authorization_code"
+	redirect_uri := "https://testnet.bethelnet.io/"
+
+	jsonBody := []byte(`{}`)
+
+	bodyReader := bytes.NewReader(jsonBody)
+
+	requestURL := "https://auth.next.fractal.id/oauth/token?" + client_id + "&" + client_secret + "&" + code + "&" + grant_type + "&" + redirect_uri
+
+	fmt.Println("Code: ", code)
+	fmt.Println("Request URL: ", requestURL)
+
+	// Create new http "POST" request
+	req, err := http.NewRequest(http.MethodPost, requestURL, bodyReader)
+	if err != nil {
+		fmt.Printf("client: could not create request: %s\n", err)
+
+	}
+
+	client := http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("client: error making http request: %s\n", err)
+
+	}
+
+	defer res.Body.Close()
+
+	// Read the response body
+	responseBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %s\n", err)
+
+	}
+
+	return responseBody
+
 }
