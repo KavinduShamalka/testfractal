@@ -64,7 +64,7 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
-	r.GET("/test", FractalURL)
+	r.POST("/test", FractalURL)
 	r.GET("/oauth/callback", CallBack)
 	r.GET("/users", VerificationsByUserIds)
 	r.Run(":8080")
