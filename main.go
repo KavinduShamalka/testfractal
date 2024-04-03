@@ -38,7 +38,7 @@ func CallBack(ctx *gin.Context) {
 	fmt.Println("state: ", state)
 	fmt.Println("code: ", code)
 
-	token := ExchangeCodeToAccessToken(ctx, code)
+	token := ExchangeCodeToAccessToken(code)
 
 	ctx.JSON(http.StatusOK, gin.H{
 		"state": state,
@@ -48,7 +48,7 @@ func CallBack(ctx *gin.Context) {
 
 }
 
-func ExchangeCodeToAccessToken(ctx *gin.Context, code string) []byte {
+func ExchangeCodeToAccessToken(code string) []byte {
 
 	client_id := "ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0"
 	client_secret := "rMkPTgNPJh1VeEmNzjZBqE4_VrnIk2KLjWJNy2wGJeM"
@@ -68,7 +68,6 @@ func ExchangeCodeToAccessToken(ctx *gin.Context, code string) []byte {
 	req, err := http.NewRequest(http.MethodPost, requestURL, bodyReader)
 	if err != nil {
 		fmt.Printf("client: could not create request: %s\n", err)
-
 	}
 
 	client := http.Client{
@@ -87,9 +86,7 @@ func ExchangeCodeToAccessToken(ctx *gin.Context, code string) []byte {
 	responseBody, err := io.ReadAll(res.Body)
 	if err != nil {
 		fmt.Printf("Error reading response body: %s\n", err)
-
 	}
 
 	return responseBody
-
 }
