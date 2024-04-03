@@ -68,6 +68,8 @@ func CallBack(ctx *gin.Context) {
 		"userDetails": userDetails,
 	})
 
+	ctx.Redirect(http.StatusFound, "https://testnet.bethelnet.io/")
+
 }
 
 func GetUserDetails(token string) string {
