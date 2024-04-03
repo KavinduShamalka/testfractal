@@ -110,25 +110,21 @@ func GetUserDetails(token string) []byte {
 	}
 
 	// Print the response body
-	fmt.Printf("%s\n", responseBody)
+	fmt.Printf("Response body: %s\n", responseBody)
 
 	return responseBody
 }
 
 func ExchangeCodeToAccessToken(code string) string {
 
-	client_id := "ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0"
-	client_secret := "rMkPTgNPJh1VeEmNzjZBqE4_VrnIk2KLjWJNy2wGJeM"
-	grant_type := "authorization_code"
-	redirect_uri := "https://testnet.bethelnet.io/"
-
 	jsonBody := []byte(`{}`)
 
 	bodyReader := bytes.NewReader(jsonBody)
 
-	requestURL := "https://auth.next.fractal.id/oauth/token?" + client_id + "&" + client_secret + "&" + code + "&" + grant_type + "&" + redirect_uri
+	requestURL := fmt.Sprintf("https://auth.next.fractal.id/oauth/token?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&client_secret=rMkPTgNPJh1VeEmNzjZBqE4_VrnIk2KLjWJNy2wGJeM&code=" + code + "&grant_type=authorization_code&redirect_uri=https://api2.bethelnet.io/oauth/callback")
 
 	fmt.Println("Code: ", code)
+
 	fmt.Println("Request URL: ", requestURL)
 
 	// Create new http "POST" request
