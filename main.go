@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +11,25 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
+
+/*
+	{
+	    "access_token": "RccWJCQxFmJ0Zg3O0-0C5wPuT2uV39k9BaWTUvz4nzI",
+	    "token_type": "Bearer",
+	    "expires_in": 7200,
+	    "refresh_token": "PPync9yNKbdV41jnYjzsAmVfiVf2EVtpuXK6dPipL-Q",
+	    "scope": "contact:read verification.basic:read verification.basic.details:read verification.liveness:read verification.liveness.details:read",
+	    "created_at": 1712127620
+	}
+*/
+type AccessTokenResponse struct {
+	AccessToken  string `json:"access_token"`
+	TokenType    string `json:"token_type"`
+	ExpiresIn    int    `json:"expires_in"`
+	RefreshToken string `json:"refresh_token"`
+	Scope        string `json:"scope"`
+	CreatedAt    int    `json:"created_at"`
+}
 
 func main() {
 	r := gin.Default()
@@ -39,16 +59,63 @@ func CallBack(ctx *gin.Context) {
 	fmt.Println("code: ", code)
 
 	token := ExchangeCodeToAccessToken(code)
+	userDetails := GetUserDetails(token)
 
 	ctx.JSON(http.StatusOK, gin.H{
-		"state": state,
-		"code":  code,
-		"token": token,
+		"state":       state,
+		"code":        code,
+		"token":       token,
+		"userDetails": userDetails,
 	})
 
 }
 
-func ExchangeCodeToAccessToken(code string) []byte {
+func GetUserDetails(token string) []byte {
+
+	requestURL := "https://resource.next.fractal.id/v2/users/me"
+
+	jsonBody := []byte(`{}`)
+
+	bodyReader := bytes.NewReader(jsonBody)
+
+	// Create new http "POST" request
+	req, err := http.NewRequest(http.MethodGet, requestURL, bodyReader)
+	if err != nil {
+		fmt.Printf("client: could not create request: %s\n", err)
+	}
+
+	// Set Headers
+	req.Header.Set("accept", "application/json")
+	req.Header.Set("authorization", fmt.Sprintf("Basic "+token))
+
+	// Create client
+	client := http.Client{
+		Timeout: 30 * time.Second,
+	}
+
+	// Make Http request and get response
+	res, err := client.Do(req)
+	if err != nil {
+		fmt.Printf("client: error making http request: %s\n", err)
+		fmt.Printf("Internal Server Error: %v\n", http.StatusInternalServerError)
+	}
+
+	defer res.Body.Close()
+
+	// Read the response body
+	responseBody, err := io.ReadAll(res.Body)
+	if err != nil {
+		fmt.Printf("Error reading response body: %s\n", err)
+		fmt.Printf("Internal Server Error: %v\n", http.StatusInternalServerError)
+	}
+
+	// Print the response body
+	fmt.Printf("%s\n", responseBody)
+
+	return responseBody
+}
+
+func ExchangeCodeToAccessToken(code string) string {
 
 	client_id := "ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0"
 	client_secret := "rMkPTgNPJh1VeEmNzjZBqE4_VrnIk2KLjWJNy2wGJeM"
@@ -88,5 +155,11 @@ func ExchangeCodeToAccessToken(code string) []byte {
 		fmt.Printf("Error reading response body: %s\n", err)
 	}
 
-	return responseBody
+	var response AccessTokenResponse
+	err = json.Unmarshal(responseBody, &response)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+
+	return response.AccessToken
 }
