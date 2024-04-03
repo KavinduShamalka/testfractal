@@ -76,9 +76,8 @@ func FractalURL(ctx *gin.Context) {
 
 	fmt.Println("URL: ", url)
 
-	// url := "https://testnet.bethelnet.io"
-
-	ctx.Redirect(http.StatusFound, fmt.Sprintf("https://app.next.fractal.id/authorize?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&redirect_uri=https%3A%2F%2Fapi2.bethelnet.io%2Foauth%2Fcallback&response_type=code&scope=contact%3Aread%20verification.basic%3Aread%20verification.basic.details%3Aread%20verification.liveness%3Aread%20verification.liveness.details%3Aread&state=123&url"+url))
+	fullUrl := fmt.Sprintf("https://app.next.fractal.id/authorize?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&redirect_uri=https%3A%2F%2Fapi2.bethelnet.io%2Foauth%2Fcallback&response_type=code&scope=contact%3Aread%20verification.basic%3Aread%20verification.basic.details%3Aread%20verification.liveness%3Aread%20verification.liveness.details%3Aread&state=123&url=%s" + url)
+	ctx.Redirect(http.StatusFound, fullUrl)
 }
 
 func CallBack(ctx *gin.Context) {
