@@ -84,9 +84,11 @@ func GetUserDetails(token string) []byte {
 		fmt.Printf("client: could not create request: %s\n", err)
 	}
 
+	fmt.Println("Token from get user: ", token)
+
 	// Set Headers
-	req.Header.Set("accept", "application/json")
-	req.Header.Set("authorization", fmt.Sprintf("Basic "+token))
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Authorization", fmt.Sprintf("Basic "+token))
 
 	// Create client
 	client := http.Client{
