@@ -88,7 +88,7 @@ func GetUserDetails(token string) []byte {
 
 	// Set Headers
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Authorization", fmt.Sprintf("Basic "+token))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer "+token))
 
 	// Create client
 	client := http.Client{
