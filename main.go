@@ -70,7 +70,7 @@ func CallBack(ctx *gin.Context) {
 
 }
 
-func GetUserDetails(token string) []byte {
+func GetUserDetails(token string) string {
 
 	requestURL := "https://resource.next.fractal.id/v2/users/me"
 
@@ -114,7 +114,7 @@ func GetUserDetails(token string) []byte {
 	// Print the response body
 	fmt.Printf("Response body: %s\n", responseBody)
 
-	return responseBody
+	return string(responseBody)
 }
 
 func ExchangeCodeToAccessToken(code string) string {
