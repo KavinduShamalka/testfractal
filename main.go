@@ -62,14 +62,16 @@ func CallBack(ctx *gin.Context) {
 	token := ExchangeCodeToAccessToken(code)
 	userDetails := GetUserDetails(token)
 
-	ctx.JSON(http.StatusOK, gin.H{
-		"state":       state,
-		"code":        code,
-		"token":       token,
-		"userDetails": userDetails,
-	})
+	fmt.Println(userDetails)
 
-	ctx.Redirect(http.StatusFound, "https://testnet.bethelnet.io/")
+	// ctx.JSON(http.StatusOK, gin.H{
+	// 	"state":       state,
+	// 	"code":        code,
+	// 	"token":       token,
+	// 	"userDetails": userDetails,
+	// })
+
+	ctx.Redirect(http.StatusFound, "https://testnet.bethelnet.io")
 
 }
 
