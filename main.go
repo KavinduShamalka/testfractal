@@ -52,6 +52,7 @@ func Test(ctx *gin.Context) {
 }
 
 func CallBack(ctx *gin.Context) {
+
 	state := ctx.Query("state")
 	code := ctx.Query("code")
 
