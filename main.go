@@ -72,15 +72,13 @@ func main() {
 
 func FractalURL(ctx *gin.Context) {
 
-	var req URL
-	if err := ctx.ShouldBindJSON(&req); err != nil {
-		ctx.JSON(http.StatusBadRequest, errorResponse(err))
-		return
-	}
+	url := ctx.Query("url")
+
+	fmt.Println("URL: ", url)
 
 	// url := "https://testnet.bethelnet.io"
 
-	ctx.Redirect(http.StatusFound, fmt.Sprintf("https://app.next.fractal.id/authorize?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&redirect_uri=https%3A%2F%2Fapi2.bethelnet.io%2Foauth%2Fcallback&response_type=code&scope=contact%3Aread%20verification.basic%3Aread%20verification.basic.details%3Aread%20verification.liveness%3Aread%20verification.liveness.details%3Aread&state=123&url"+req.Url))
+	ctx.Redirect(http.StatusFound, fmt.Sprintf("https://app.next.fractal.id/authorize?client_id=ne6k3g1ZTyvpJwZfxTwRu0b9jEGfc4K4AIfrjFUary0&redirect_uri=https%3A%2F%2Fapi2.bethelnet.io%2Foauth%2Fcallback&response_type=code&scope=contact%3Aread%20verification.basic%3Aread%20verification.basic.details%3Aread%20verification.liveness%3Aread%20verification.liveness.details%3Aread&state=123&url"+url))
 }
 
 func CallBack(ctx *gin.Context) {
@@ -292,7 +290,7 @@ func GetAllUsers(token string) string {
 	return string(responseBody)
 }
 
-func errorResponse(err error) gin.H {
+func ErrorResponse(err error) gin.H {
 	return gin.H{
 		"error": err.Error(),
 	}
