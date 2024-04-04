@@ -33,6 +33,7 @@ type UserAccessTokenResponse struct {
 type CallBackResponse struct {
 	Uuid   string `json:"uuid"`
 	Status string `json:"status"`
+	Url    string `json:"url"`
 }
 
 func main() {
@@ -76,9 +77,8 @@ func CallBack(ctx *gin.Context) {
 	kycResponse := CallBackResponse{
 		Uuid:   uuid,
 		Status: status,
+		Url:    "https://testnet.bethelnet.io",
 	}
-
-	ctx.Redirect(http.StatusFound, "https://testnet.bethelnet.io")
 
 	ctx.JSON(200, kycResponse)
 
