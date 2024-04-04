@@ -13,16 +13,6 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-/*
-	{
-	    "access_token": "RccWJCQxFmJ0Zg3O0-0C5wPuT2uV39k9BaWTUvz4nzI",
-	    "token_type": "Bearer",
-	    "expires_in": 7200,
-	    "refresh_token": "PPync9yNKbdV41jnYjzsAmVfiVf2EVtpuXK6dPipL-Q",
-	    "scope": "contact:read verification.basic:read verification.basic.details:read verification.liveness:read verification.liveness.details:read",
-	    "created_at": 1712127620
-	}
-*/
 type AccessTokenResponse struct {
 	AccessToken  string `json:"access_token"`
 	TokenType    string `json:"token_type"`
@@ -32,16 +22,6 @@ type AccessTokenResponse struct {
 	CreatedAt    int    `json:"created_at"`
 }
 
-/*
-	{
-		"access_token":"OUuf_tJs-J2AAxjWr0JHvzFure5Eb7KMUQRO0jpqXWc",
-		"token_type":"Bearer",
-		"expires_in":7200,
-		"scope":"client.stats:read",
-		"created_at":1554400723
-	}
-*/
-
 type UserAccessTokenResponse struct {
 	AccessToken string `json:"access_token"`
 	TokenType   string `json:"token_type"`
@@ -50,7 +30,13 @@ type UserAccessTokenResponse struct {
 	CreatedAt   int    `json:"created_at"`
 }
 
+type CallBackResponse struct {
+	Uuid   string `json:"uuid"`
+	Status string `json:"status"`
+}
+
 func main() {
+
 	r := gin.Default()
 
 	r.Use(cors.New(cors.Config{
@@ -61,6 +47,7 @@ func main() {
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
 	r.GET("/test", FractalURL)
 	r.GET("/oauth/callback", CallBack)
 	r.GET("/users", VerificationsByUserIds)
@@ -85,14 +72,15 @@ func CallBack(ctx *gin.Context) {
 	fmt.Println("Uuid: ", uuid)
 	fmt.Println("Status: ", status)
 
-	// ctx.JSON(http.StatusOK, gin.H{
-	// 	"state":       state,
-	// 	"code":        code,
-	// 	"token":       token,
-	// 	"userDetails": userDetails,
-	// })
+	// Create CID instances using urlGC
+	kycResponse := CallBackResponse{
+		Uuid:   uuid,
+		Status: status,
+	}
 
-	ctx.Redirect(http.StatusFound, "https://testnet.bethelnet.io")
+	ctx.JSON(200, kycResponse)
+
+	// ctx.Redirect(http.StatusFound, "https://testnet.bethelnet.io")
 
 }
 
@@ -251,6 +239,7 @@ func VerificationsByUserIds(ctx *gin.Context) {
 }
 
 func GetAllUsers(token string) string {
+
 	requestURL := "https://resource.next.fractal.id/v2/stats/user-verifications"
 
 	jsonBody := []byte(`{}`)
@@ -313,4 +302,5 @@ func GetBody(res []byte) map[string]interface{} {
 	}
 
 	return data
+
 }
