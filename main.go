@@ -78,9 +78,9 @@ func CallBack(ctx *gin.Context) {
 		Status: status,
 	}
 
-	ctx.JSON(200, kycResponse)
-
 	ctx.Redirect(http.StatusFound, "https://testnet.bethelnet.io")
+
+	ctx.JSON(200, kycResponse)
 
 }
 
